@@ -1,0 +1,454 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[left=2cm,right=1.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+\setlist{itemsep=1pt,topsep=4pt}
+
+\definecolor{codebackground}{HTML}{F7F7F7}
+\definecolor{codeframe}{HTML}{CBD5E1}
+\definecolor{terminalgreen}{HTML}{166534}
+\definecolor{terminalbackground}{HTML}{F3F8F4}
+\definecolor{headingblue}{HTML}{1E3A5F}
+\definecolor{commentgrey}{HTML}{6B7280}
+\definecolor{stringred}{HTML}{9F1239}
+
+\titleformat{\section}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {\thesection}{0.8em}{\MakeUppercase}
+\titleformat{name=\section,numberless}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{0pt}{12pt}
+\titlespacing*{\subsection}{0pt}{10pt}{6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Operating Systems}}
+\fancyhead[R]{\small Laboratory Work No. 8}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+\lstdefinestyle{code}{
+  language=C,
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  keywordstyle=\color{headingblue}\bfseries,
+  commentstyle=\color{commentgrey}\itshape,
+  stringstyle=\color{stringred},
+  backgroundcolor=\color{codebackground},
+  frame=single,
+  rulecolor=\color{codeframe},
+  numbers=left,
+  numberstyle=\tiny\color{commentgrey},
+  numbersep=6pt,
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=4,
+  xleftmargin=0.6cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+\lstdefinestyle{terminal}{
+  language={},
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  backgroundcolor=\color{terminalbackground},
+  frame=single,
+  rulecolor=\color{terminalgreen},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=8,
+  xleftmargin=0.25cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+% \qa{number}{question} -- the answer follows as a normal paragraph
+\newcommand{\qa}[2]{%
+  \par\needspace{5\baselineskip}\medskip
+  \noindent\textbf{#1.~#2}\par\smallskip\noindent}
+
+\begin{document}
+
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begin{center}
+    \includegraphics[width=3.4cm]{LOGO_UTM.png}\par
+    \vspace{0.25cm}
+
+    {\bfseries\fontsize{14}{17}\selectfont
+      MINISTRY OF EDUCATION AND RESEARCH\par
+      OF THE REPUBLIC OF MOLDOVA\par
+      Technical University of Moldova\par
+      Faculty of Computers, Informatics and Microelectronics\par
+      Department of Software Engineering and Automation\par
+    }
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{16}{19}\selectfont Sergiu Gherasim, FAF-242\par}
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{36}{40}\selectfont Report\par}
+    \vspace{0.25cm}
+    {\itshape\fontsize{20}{24}\selectfont Laboratory Work No. 8\par}
+    {\bfseries\itshape\fontsize{20}{24}\selectfont Operating Systems\par}
+
+    \vspace{1cm}
+    {\fontsize{20}{25}\selectfont Topic: The Same Calls Inside Your Own OS\par}
+    \vspace{0.2cm}
+    {\fontsize{15}{19}\selectfont run and pingpong in xv6\par}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    {\fontsize{15}{18}\selectfont Checked by:}\par
+    \textbf{Patricia Rei\c{t}man}, \textit{university assistant}
+  \end{flushright}
+
+  \vfill
+  \begin{center}
+    {\bfseries\fontsize{14}{17}\selectfont Chi\c{s}in\u{a}u -- 2026}
+  \end{center}
+\end{titlepage}
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+In Laboratory Work No.~7 I ran \texttt{fork}, \texttt{exec} and \texttt{wait} on Linux. The purpose of this laboratory work is to run the same program inside xv6, the small operating system built during this semester, and to see that the system calls are the same. There is no glibc in xv6: only the system calls of the kernel I compiled and a tiny user library. In the second part two processes talk to each other through pipes (\texttt{pingpong}), and in the optional part a chain of processes connected by pipes computes prime numbers (\texttt{primes}).
+
+I used my \texttt{xv6-riscv} tree from the previous labs. The submitted files are \texttt{user/run.c}, \texttt{user/pingpong.c}, \texttt{user/primes.c} and the \texttt{Makefile} with the new \texttt{UPROGS} lines:
+
+\begin{lstlisting}[style=terminal,caption={The new lines in UPROGS (each starts with a TAB, nothing after the backslash)}]
+UPROGS=\
+	$U/_cat\
+	...
+	$U/_zombie\
+	...
+	$U/_sync\
+	$U/_run\
+	$U/_pingpong\
+	$U/_primes\
+\end{lstlisting}
+
+\newpage
+\section{Short Theory}
+
+\subsection{Processes in xv6}
+
+xv6 offers the same process model as Unix. \texttt{fork()} copies the page table, the registers and the table of open files of the calling process into a new \texttt{struct proc} and returns 0 in the child and the child's PID in the parent. \texttt{exec(path, argv)} reads an ELF file from the file system, builds a fresh address space with the arguments on the user stack and, on success, never returns. \texttt{exit(status)} stores the status and turns the process into a zombie (\texttt{ZOMBIE} state), and \texttt{wait(\&status)} in the parent copies that status, frees the child and returns its PID. Unlike Linux, xv6 has no \texttt{PATH} search and no \texttt{WEXITSTATUS}: \texttt{wait} returns the exit value directly.
+
+\subsection{Pipes in xv6}
+
+\texttt{pipe(p)} creates a kernel object with a 512-byte circular buffer (\texttt{kernel/pipe.c}) and returns two descriptors: \texttt{p[0]} for reading and \texttt{p[1]} for writing. \texttt{piperead} sleeps while the buffer is empty and at least one writer exists; \texttt{pipewrite} sleeps while the buffer is full. These sleeps are what synchronise two processes without any explicit ``wait for the other'' code. A pipe carries bytes in one direction only.
+
+\newpage
+\section{run, Inside xv6}
+
+\subsection{The Program}
+
+\begin{lstlisting}[style=code,caption={user/run.c}]
+#include "kernel/types.h"
+#include "user/user.h"
+
+// the three steps of the shell, inside xv6:  echo hello from the child
+int
+main(int argc, char *argv[])
+{
+  printf("parent: my pid is %d\n", getpid());
+
+  int pid = fork();                     // step 1: copy myself
+  if(pid < 0){
+    printf("fork failed\n");
+    exit(1);
+  }
+
+  if(pid == 0){                         // only the child runs this
+    printf("child: my pid is %d\n", getpid());
+    char *args[] = { "echo", "hello", "from", "the", "child", 0 };
+    exec("echo", args);                 // step 2: become echo
+    // step 1.3:  char *args[] = { "ls", 0 };  exec("ls", args);
+    // step 1.4:  exec("nosuchprog", args);
+    printf("exec failed\n");            // runs only if exec failed
+    exit(1);
+  }
+
+  int status;
+  wait(&status);                        // step 3: wait for the child
+  printf("parent: child %d ended with status %d\n", pid, status);
+  exit(0);
+}
+\end{lstlisting}
+
+The two commented lines are the variants of steps 1.3 and 1.4; for each experiment I replaced the \texttt{args}/\texttt{exec} lines with them, left xv6 with \texttt{Ctrl-A X} and ran \texttt{make qemu} again.
+
+\subsection{Running It}
+
+\begin{lstlisting}[style=terminal,caption={Step 1.2: the child becomes echo}]
+$ make qemu
+...
+xv6 kernel is booting
+
+hart 2 starting
+hart 1 starting
+init: starting sh
+$ run
+parent: my pid is 3
+child: my pid is 4
+hello from the child
+parent: child 4 ended with status 0
+$
+\end{lstlisting}
+
+\begin{lstlisting}[style=terminal,caption={Step 1.3: the child becomes ls}]
+$ run
+parent: my pid is 3
+child: my pid is 4
+.              1 1 1024
+..             1 1 1024
+README         2 2 2441
+cat            2 3 35376
+echo           2 4 34232
+...
+run            2 25 34560
+pingpong       2 26 34384
+primes         2 27 34720
+console        3 28 0
+parent: child 4 ended with status 0
+$
+\end{lstlisting}
+
+\begin{lstlisting}[style=terminal,caption={Step 1.4: exec of a program that does not exist}]
+$ run
+parent: my pid is 3
+child: my pid is 4
+exec failed
+parent: child 4 ended with status 1
+$
+\end{lstlisting}
+
+\subsection*{Observations}
+
+\qa{1}{Write the three calls that \texttt{run.c} uses in xv6 and the three calls \texttt{run.c} used on Linux in Laboratory Work No.~7. What is the same?}
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{The three steps of the shell on both systems}
+  \begin{tabularx}{\textwidth}{l l l X}
+    \toprule
+    \textbf{Step} & \textbf{xv6} & \textbf{Linux (Lab 7)} & \textbf{Notes} \\
+    \midrule
+    1. copy      & \texttt{fork()}             & \texttt{fork()}                         & identical: 0 in the child, child PID in the parent \\
+    2. become    & \texttt{exec("echo", args)} & \texttt{execlp("ls", "ls", "-l", NULL)} & xv6 takes an \texttt{argv} array and no \texttt{PATH} search \\
+    3. wait      & \texttt{wait(\&status)}     & \texttt{waitpid(pid, \&status, 0)}      & xv6 returns the exit value directly, no \texttt{WEXITSTATUS} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The structure is the same: \texttt{fork} creates a copy and returns twice, the child calls \texttt{exec} and is replaced by another program (so the code after it runs only on failure), and the parent blocks in \texttt{wait} until the child exits and then receives its status. The program even has the same shape and the same comments. Only the details of the library differ: Linux offers more convenient variants (\texttt{execlp} with \texttt{PATH} search, \texttt{waitpid} for a specific child), while xv6 has the bare system calls. \texttt{exec("echo", ...)} works in xv6 only because the shell's current directory is \texttt{/}, where all programs live.
+
+\qa{2}{Who prints ``hello from the child'': the code of \texttt{run}, or \texttt{echo}?}
+\texttt{echo} prints it. There is no such string as an output of \texttt{printf} in \texttt{run.c}: the words \texttt{hello}, \texttt{from}, \texttt{the}, \texttt{child} are only passed as \texttt{argv[1..4]} to \texttt{exec}. After \texttt{exec} the child process (PID 4) is no longer running the code of \texttt{run}; it runs \texttt{user/echo.c}, which writes its arguments separated by spaces and calls \texttt{exit(0)}. The same PID, a different program -- that is why the parent then reports ``child 4 ended with status 0''.
+
+\qa{3}{Why is the status 1 here and 127 on Linux?}
+Because the status is simply the number that the child passes to \texttt{exit} after the failed \texttt{exec}, and the two programs pass different numbers: \texttt{user/run.c} calls \texttt{exit(1)}, while the Linux \texttt{run.c} calls \texttt{exit(127)}. The kernel does not invent the value; it only transports it from \texttt{exit} in the child to \texttt{wait} in the parent. \texttt{127} on Linux is the convention used by shells for ``command not found''; xv6 does not follow that convention, and its own shell \texttt{sh.c} also just prints ``exec failed''.
+
+\newpage
+\section{pingpong}
+
+\subsection{Implementation}
+
+The parent creates two pipes before \texttt{fork}, so both processes inherit all four ends. Each process first closes the two ends it does not use. The parent writes one byte into \texttt{p2c} (``ping''), the child reads it, prints its message, writes the byte back into \texttt{c2p} (``pong'') and exits; the parent reads the reply, prints its message and waits for the child.
+
+\begin{lstlisting}[style=code,caption={user/pingpong.c}]
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main(int argc, char *argv[])
+{
+  int p2c[2], c2p[2];     // parent-to-child, child-to-parent
+  char b;
+
+  pipe(p2c);
+  pipe(c2p);
+  if(fork() == 0){
+    close(p2c[1]); close(c2p[0]);       // the ends the child does not use
+    if(read(p2c[0], &b, 1) != 1){       // blocks until the parent writes
+      fprintf(2, "pingpong: child read failed\n");
+      exit(1);
+    }
+    printf("%d: received ping\n", getpid());
+    write(c2p[1], &b, 1);               // send the same byte back
+    close(p2c[0]); close(c2p[1]);
+    exit(0);
+  }
+  close(p2c[0]); close(c2p[1]);         // the ends the parent does not use
+  b = 'x';
+  write(p2c[1], &b, 1);                 // ping
+  if(read(c2p[0], &b, 1) != 1){         // blocks until the child replies
+    fprintf(2, "pingpong: parent read failed\n");
+    exit(1);
+  }
+  printf("%d: received pong\n", getpid());
+  close(p2c[1]); close(c2p[0]);
+  wait(0);
+  exit(0);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=terminal,caption={Running pingpong (after one run of run, so the PIDs are 5 and 6)}]
+$ run
+...
+$ pingpong
+6: received ping
+5: received pong
+$ pingpong
+8: received ping
+7: received pong
+$
+\end{lstlisting}
+
+The child (the higher PID) always prints ``received ping'' first, as required.
+
+\subsection*{Observations}
+
+\qa{1}{Why do you need TWO pipes, and not one for both directions?}
+A pipe is a single one-way buffer: whatever is written into \texttt{p[1]} can be read by \textit{any} process holding \texttt{p[0]}, including the writer itself. With one pipe, after the parent writes the ping it would immediately call \texttt{read} on the same pipe and could take its own byte back before the child gets a chance to read it -- then the child would wait forever and the parent would print ``pong'' without any reply. There is also no way to tell whose byte is in the buffer. Two pipes give each direction its own channel: the parent writes only to \texttt{p2c} and reads only from \texttt{c2p}, the child the other way round, so every byte can reach only the intended receiver. This is exactly why real systems use two pipes (or a socket) for two-way communication.
+
+\qa{2}{Nothing in your code says ``wait until the child has replied''. Which call makes the parent wait?}
+The parent's \texttt{read(c2p[0], \&b, 1)}. When the parent reaches it, the pipe \texttt{c2p} is still empty, so \texttt{piperead} in the kernel puts the parent to \texttt{sleep}; it is woken up only when the child's \texttt{write(c2p[1], \&b, 1)} puts the byte into the buffer. In the same way the child's \texttt{read(p2c[0], \&b, 1)} blocks until the parent has written the ping, which guarantees that ``ping'' is printed before ``pong''. The final \texttt{wait(0)} only collects the child's exit status; the synchronisation itself is done by the blocking \texttt{read}.
+
+\newpage
+\section{Optional: primes}
+
+\texttt{primes.c} implements the sieve as a chain of processes. The main process writes the numbers 2..35 into the first pipe. Every stage reads its first number $p$ -- which must be prime, because all smaller primes already removed their multiples -- prints it, creates a new pipe and a child for the next stage, and forwards only the numbers not divisible by $p$. When a stage gets end-of-file, it closes its right pipe (so the next stage also gets end-of-file), waits for its child and exits. Every pipe end that is not used is closed immediately, otherwise the chain would run out of the 16 descriptors per process and no stage would ever see end-of-file.
+
+\begin{lstlisting}[style=code,caption={user/primes.c}]
+#include "kernel/types.h"
+#include "user/user.h"
+
+// prime sieve with a chain of processes: every stage prints its first
+// number p and forwards to the next stage only the numbers not divisible by p
+
+void stage(int left) __attribute__((noreturn));
+
+void
+stage(int left)
+{
+  int p, n;
+
+  if(read(left, &p, sizeof(p)) != sizeof(p)){
+    close(left);                        // nothing came: end of the chain
+    exit(0);
+  }
+  printf("prime %d\n", p);
+
+  int right[2];
+  pipe(right);
+  if(fork() == 0){
+    close(right[1]);                    // the next stage only reads
+    close(left);
+    stage(right[0]);
+  }
+  close(right[0]);                      // this stage only writes to the right
+  while(read(left, &n, sizeof(n)) == sizeof(n)){
+    if(n % p != 0)
+      write(right[1], &n, sizeof(n));
+  }
+  close(left);
+  close(right[1]);                      // EOF for the next stage
+  wait(0);
+  exit(0);
+}
+
+int
+main(int argc, char *argv[])
+{
+  int p[2];
+
+  pipe(p);
+  if(fork() == 0){
+    close(p[1]);
+    stage(p[0]);
+  }
+  close(p[0]);
+  for(int i = 2; i <= 35; i++)
+    write(p[1], &i, sizeof(i));
+  close(p[1]);
+  wait(0);
+  exit(0);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=terminal,caption={Running primes}]
+$ primes
+prime 2
+prime 3
+prime 5
+prime 7
+prime 11
+prime 13
+prime 17
+prime 19
+prime 23
+prime 29
+prime 31
+$
+\end{lstlisting}
+
+\newpage
+\section*{Conclusions}
+\addcontentsline{toc}{section}{Conclusions}
+
+In this laboratory work I ran the program from Laboratory Work No.~7 inside xv6 and confirmed that the process model is the same in both systems: \texttt{fork} creates a copy, \texttt{exec} replaces the program and does not return on success, and \texttt{wait} lets the parent collect the child's exit status. The differences are only in the user library -- no \texttt{PATH} search, no \texttt{WEXITSTATUS}, no \texttt{execlp} -- and the exit status after a failed \texttt{exec} is whatever the programmer passes to \texttt{exit}: 1 in xv6, 127 on Linux. Seeing ``hello from the child'' printed by \texttt{echo} under the PID of the child made it clear that \texttt{exec} keeps the process but changes the program.
+
+With \texttt{pingpong} I made two processes communicate in both directions. I learned why one pipe per direction is necessary, why every process must close the ends it does not use, and that the blocking \texttt{read} on an empty pipe is what synchronises the two processes without any explicit waiting code. The optional \texttt{primes} program extended the same idea to a whole chain of processes, where careful closing of pipe ends is essential both for termination and for staying within the limit of open files.
+
+\end{document}
