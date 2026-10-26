@@ -1,0 +1,291 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[left=2cm,right=1.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+\setlist{itemsep=1pt,topsep=4pt}
+
+\definecolor{codebackground}{HTML}{F7F7F7}
+\definecolor{codeframe}{HTML}{CBD5E1}
+\definecolor{terminalgreen}{HTML}{166534}
+\definecolor{terminalbackground}{HTML}{F3F8F4}
+\definecolor{headingblue}{HTML}{1E3A5F}
+\definecolor{commentgrey}{HTML}{6B7280}
+
+\titleformat{\section}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {\thesection}{0.8em}{\MakeUppercase}
+\titleformat{name=\section,numberless}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{0pt}{12pt}
+\titlespacing*{\subsection}{0pt}{10pt}{6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Operating Systems}}
+\fancyhead[R]{\small Laboratory Work No. 1}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+\lstdefinestyle{terminal}{
+  language={},
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  backgroundcolor=\color{terminalbackground},
+  frame=single,
+  rulecolor=\color{terminalgreen},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=8,
+  xleftmargin=0.25cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+% \qa{number}{question} -- the answer follows as a normal paragraph
+\newcommand{\qa}[2]{%
+  \par\needspace{5\baselineskip}\medskip
+  \noindent\textbf{#1.~#2}\par\smallskip\noindent}
+
+% \shot{n}{caption} -- includes screenshots/sc-n.png (or sc-n.png next to this file)
+\newcommand{\shot}[2]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{screenshots/sc-#1.png}
+      {\includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{screenshots/sc-#1}}
+      {\IfFileExists{sc-#1.png}
+        {\includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{sc-#1}}
+        {\fbox{\parbox[c][3cm][c]{0.9\linewidth}{\centering\color{red}\bfseries missing sc-#1.png}}}}
+    \caption{#2}
+    \label{fig:sc-#1}
+  \end{figure}}
+
+% \val{...} -- a value that must match the screenshots. Shown in red until
+% checked; when every value is updated, change the body to just #1.
+\newcommand{\val}[1]{\textcolor{red}{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begin{center}
+    \includegraphics[width=3.4cm]{LOGO_UTM.png}\par
+    \vspace{0.25cm}
+
+    {\bfseries\fontsize{14}{17}\selectfont
+      MINISTRY OF EDUCATION AND RESEARCH\par
+      OF THE REPUBLIC OF MOLDOVA\par
+      Technical University of Moldova\par
+      Faculty of Computers, Informatics and Microelectronics\par
+      Department of Software Engineering and Automation\par
+    }
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{16}{19}\selectfont Sergiu Gherasim, FAF-242\par}
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{36}{40}\selectfont Report\par}
+    \vspace{0.25cm}
+    {\itshape\fontsize{20}{24}\selectfont Laboratory Work No. 1\par}
+    {\bfseries\itshape\fontsize{20}{24}\selectfont Operating Systems\par}
+
+    \vspace{1cm}
+    {\fontsize{20}{25}\selectfont Topic: The OS as a Resource Manager\par}
+    \vspace{0.2cm}
+    {\fontsize{15}{19}\selectfont First Contact with the Operating System\par}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    {\fontsize{15}{18}\selectfont Checked by:}\par
+    \textbf{Patricia Rei\c{t}man}, \textit{university assistant}
+  \end{flushright}
+
+  \vfill
+  \begin{center}
+    {\bfseries\fontsize{14}{17}\selectfont Chi\c{s}in\u{a}u -- 2026}
+  \end{center}
+\end{titlepage}
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+In the lecture the operating system was presented as the manager that stands between programs and the hardware. The purpose of this laboratory work is to watch that manager at work from the terminal of a Linux virtual machine, through its four core jobs: managing files, processes, memory and devices. For each of them I ran the commands from the task, looked at the output and wrote down what it shows.
+
+I used a Debian 13 virtual machine with 6 CPU cores and 4~GB of RAM, running in UTM on my laptop. First I created a working folder and asked the OS who I am, which kernel manages the machine and how long it has been running.
+
+\shot{1}{Working folder, whoami, uname -a and uptime}
+
+\texttt{whoami} prints my user name, \texttt{sergiu}. \texttt{uname -a} shows that the machine is managed by the Linux kernel 6.12 (\texttt{6.12.111+deb13-arm64}), built for the \texttt{aarch64} architecture (64-bit ARM). \texttt{uptime} shows that the system had been running for 12 minutes with 1 user logged in, and load averages of almost 0 for the last 1, 5 and 15 minutes: the VM was idle.
+
+\newpage
+\section{Files and Directories}
+
+\subsection{Navigating and Inspecting}
+
+\shot{2}{pwd and ls -la /}
+
+\texttt{pwd} prints the directory I am in. \texttt{ls -la /} lists the root of the whole tree. Every line starts with the type and permissions, followed by the number of links, the owner, the group, the size, the modification date and the name. Everything under \texttt{/} belongs to \texttt{root}. \texttt{/proc} and \texttt{/sys} have the size 0, because they are not on the disk but generated by the kernel, and \texttt{/tmp} has the permissions \texttt{drwxrwxrwt}, so everybody may create files there. On Debian, \texttt{/bin}, \texttt{/lib} and \texttt{/sbin} are symbolic links (type \texttt{l}) into \texttt{/usr}.
+
+\shot{3}{ls -la \textasciitilde{}}
+
+The home directory belongs to me and is closed to other users (\texttt{drwx------}). Besides my \texttt{os-lab1} folder it contains the usual folders of a desktop user (\texttt{Desktop}, \texttt{Documents}, \texttt{Downloads}) and hidden configuration files whose names start with a dot, such as \texttt{.bashrc} and \texttt{.profile}.
+
+\shot{4}{cd /etc and ls | head}
+
+\texttt{/etc} holds the configuration of the whole system: users, groups, network settings and the configuration of installed services.
+
+\subsection{Creating, Copying, Renaming and Removing}
+
+\shot{5}{mkdir, echo, cp, mv, ls -l and rm in the demo folder}
+
+\texttt{mkdir demo \&\& cd demo} creates a directory and enters it. \texttt{echo "hello operating systems" > note.txt} creates a file and writes the text into it through output redirection. \texttt{cp} makes a second, independent copy of the file, and \texttt{mv} renames the copy. There is no separate rename command: inside the same file system \texttt{mv} does not copy any data, it only changes the name stored in the directory. \texttt{ls -l} shows both files with the same size of 24 bytes (23 characters and a newline), and \texttt{rm} removes the renamed one without printing anything.
+
+\subsection{Ownership and Permissions}
+
+\shot{6}{ls -l, chmod 600 and chmod 644 on note.txt}
+
+The new file was created as \texttt{-rw-rw-r--}: my \texttt{umask} is \texttt{0002}, so the group also gets write access. Each digit of \texttt{chmod} is a sum of $r=4$, $w=2$ and $x=1$, for the owner, the group and others in this order. \texttt{chmod 600} leaves read and write only to the owner, and \texttt{chmod 644} sets \texttt{-rw-r--r--}: read and write for the owner, read only for the group and others.
+
+\qa{1}{Who owns the files you just created, and which group?}
+The owner is my user \texttt{sergiu} and the group is \texttt{sergiu}. On Debian every user gets a private group with the same name.
+
+\qa{2}{What do the ten characters at the start of \texttt{ls -l} mean for note.txt after chmod 600?}
+After \texttt{chmod 600} they are \texttt{-rw-------}. The first character \texttt{-} means a regular file (a directory would have \texttt{d}). The next three, \texttt{rw-}, mean that the owner can read and write but not execute. The group (\texttt{---}) and all other users (\texttt{---}) have no rights at all.
+
+\qa{3}{Name two directories directly under / and what they hold.}
+\texttt{/etc} holds the system-wide configuration files. \texttt{/home} holds the home directories of the users, with their personal files.
+
+\newpage
+\section{Processes}
+
+\subsection{Listing Processes}
+
+\shot{7}{ps aux | head and ps aux | wc -l}
+
+\texttt{ps aux} lists every process with its owner, PID, CPU and memory usage, state, start time and command. The first line is PID 1. Most of the other processes at the top are kernel threads, whose names are shown in square brackets. \texttt{wc -l} counts \val{210} lines, one of which is the header.
+
+\shot{8}{top}
+
+\texttt{top} shows the same list live, sorted by CPU usage and refreshed every few seconds. Its header summarises the uptime, the load, the number of tasks in each state, the CPU usage and the memory and swap totals. On the idle VM there were 208 tasks, of which only 1 was running (\texttt{top} itself) and 207 were sleeping, and the CPU was 99.5\,\% idle. The busiest process was \texttt{gnome-shell}, the desktop, with 2.6\,\% CPU. Most of the other lines are kernel threads (\texttt{kworker}, \texttt{ksoftirqd}, \texttt{migration}) with no memory of their own; state \texttt{I} means an idle kernel thread.
+
+\subsection{A Background Process}
+
+\shot{9}{sleep 300 \&, jobs, ps -ef | grep sleep and kill}
+
+\texttt{sleep 300 \&} starts \texttt{sleep} in the background; the shell prints the job number \texttt{[1]} and the PID \val{3073}. \texttt{jobs} shows the job as running. \texttt{ps -ef | grep sleep} finds it among all processes; its parent PID is the PID of my shell. The second line is the \texttt{grep} command itself. \texttt{kill} sends the signal \texttt{SIGTERM}, and the shell reports the job as terminated.
+
+\subsection{The /proc Pseudo-Filesystem}
+
+\shot{10}{ls /proc/\$PID/ and cat /proc/\$PID/status | head -20}
+
+\texttt{\$!} is the PID of the last background process, so \texttt{PID=\$!} saves it in a variable. \texttt{/proc/\$PID} is not stored on any disk: the kernel generates these files when they are read. They describe the process: \texttt{cmdline} holds its command line, \texttt{fd} its open files, \texttt{maps} its memory areas, and \texttt{status} a readable summary. In \texttt{status} I can see the name \texttt{sleep}, the state, the PID 3503 and the parent PID 2255 (my \texttt{bash}), my user and group ID 1000, and the virtual memory size of 5260~kB.
+
+\shot{11}{Process number 1}
+
+\qa{1}{What is the PID of process number 1, and what is it?}
+PID 1 is \texttt{systemd}. It was started as \texttt{/sbin/init}, which is a symbolic link to \texttt{/lib/systemd/systemd}. It is the first user process, started by the kernel at the end of boot. It starts all the other services, and it becomes the new parent of every process whose parent dies. If it stops, the kernel panics.
+
+\qa{2}{Roughly how many processes were running on your idle VM?}
+About 208, according to \texttt{top}. \texttt{htop} splits them into 109 user processes and 101 kernel threads, so about half are not programs at all but parts of the kernel.
+
+\qa{3}{What does the ``State:'' line of /proc/<pid>/status say for your sleeping process?}
+It says \texttt{S (sleeping)}: the process waits for its timer to expire and does not use the CPU until the kernel wakes it up.
+
+\newpage
+\section{Memory}
+
+\shot{12}{free -h and cat /proc/meminfo | head -6}
+
+\shot{13}{VmRSS of a sleep process}
+
+\qa{1}{How much total RAM does the VM have, and how much is free?}
+The VM has 3.8~GiB of RAM (\texttt{MemTotal} is 4\,007\,168~kB). \texttt{free -h} shows 979~MiB used, 2.2~GiB free and 2.9~GiB available. The \texttt{available} column is more useful than \texttt{free}, because it also counts the file cache that the kernel can release when a program needs memory. \texttt{free} reads the same numbers that \texttt{/proc/meminfo} shows (\texttt{MemTotal}, \texttt{MemFree}, \texttt{MemAvailable}).
+
+\qa{2}{What is swap, and how much is configured?}
+Swap is space on the disk where the kernel moves memory pages that are not used often when RAM runs out. This keeps programs running at the cost of speed, because a disk is much slower than RAM. This VM has 546~MiB of swap configured, on its own disk partition \texttt{vda4} (see Figure~\ref{fig:sc-14}), and none of it is used, because more than half of the RAM is still free.
+
+\qa{3}{How much resident memory (VmRSS) does a bare sleep process use, and does that surprise you?}
+\texttt{VmRSS} is 1804~kB, about 1.8~MiB. At first this surprised me, because \texttt{sleep} does nothing. But even the smallest program has its code, a stack and the shared C library mapped into memory. Most of these pages are shared with other processes, so the real cost of one more \texttt{sleep} is much smaller.
+
+\newpage
+\section{Devices and Storage}
+
+\shot{14}{df -h and lsblk}
+
+\texttt{df -h} lists the mounted file systems with their size and free space. Some of them, such as \texttt{tmpfs} and \texttt{udev}, are not on a disk at all but in memory. \texttt{lsblk} shows the block devices themselves: the 10~GB virtual disk \texttt{vda} with four partitions (\texttt{vda2} for \texttt{/boot/efi}, \texttt{vda3} for \texttt{/}, \texttt{vda4} for swap) and the virtual CD drive \texttt{sr0}. The root file system is 8.5~GB and already 81\,\% full.
+
+\shot{15}{du -sh \textasciitilde/os-lab1 and ls -l /dev | head}
+
+\texttt{du -sh} shows that my work folder occupies only 12~KB: three 4~KB blocks, for \texttt{os-lab1}, \texttt{demo} and \texttt{note.txt}. In \texttt{ls -l /dev} the first letter is \texttt{c} for character devices, which transfer a stream of bytes (terminals, \texttt{null}), or \texttt{b} for block devices, which are read in blocks (disks). Instead of a size, a device file shows two numbers (for example \texttt{5, 1} for \texttt{console}), the major and the minor number, which tell the kernel which driver and which device the file stands for.
+
+\shot{16}{mount | head}
+
+\texttt{mount} shows that besides the disk, the kernel mounts virtual file systems such as \texttt{sysfs} on \texttt{/sys}, \texttt{proc} on \texttt{/proc} and \texttt{devtmpfs} on \texttt{/dev}.
+
+\qa{1}{Which device is your root filesystem ``/'' mounted on?}
+\texttt{/} is mounted on \texttt{/dev/vda3}, the third partition of the virtual disk of the VM, formatted as \texttt{ext4}.
+
+\qa{2}{Give one entry from /dev and say what real thing it stands for.}
+\texttt{/dev/vda} is the whole virtual hard disk of the machine. Reading it gives the raw bytes of the disk, below any file system. Another example is \texttt{/dev/null}, which stands for no device at all: it discards everything written to it.
+
+\qa{3}{What does ``everything is a file'' mean, based on what you saw?}
+Disks, terminals, processes and kernel information all appear as names in the same file tree (\texttt{/dev}, \texttt{/proc}) and are used with the same operations as regular files: \texttt{open}, \texttt{read}, \texttt{write} and \texttt{close}.
+
+\newpage
+\section{Finished Early}
+
+\shot{17}{htop}
+
+\texttt{htop} shows the same information as \texttt{top}, but with a bar for every CPU core (6 here) and for memory and swap, and it separates the 109 user processes from the 101 kernel threads. It can also scroll, sort, show processes as a tree and kill them with the keyboard.
+
+\shot{18}{strace -c ls}
+
+\texttt{strace -c} runs \texttt{ls} and counts every system call it makes. Listing a directory with a single file needed 164 calls of 21 different kinds, and 21 of them failed. Most of them only prepare the program: \texttt{execve} loads it, then 35 \texttt{openat}, 30 \texttt{mmap} and 24 \texttt{close} calls look for and load the shared libraries and locale files (the 13 failed \texttt{openat} calls are files that were looked for but do not exist). The real work is only 3 calls: 2 \texttt{getdents64} read the directory entries and 1 \texttt{write} prints \texttt{note.txt}. Every one of these calls is a request to the OS, because a program cannot touch the disk or the terminal by itself.
+
+\newpage
+\section*{Conclusions}
+\addcontentsline{toc}{section}{Conclusions}
+
+The operating system manages four resources: files, processes, memory and devices. I saw \textbf{files} with \texttt{ls -l}, which shows the owner and permissions the OS keeps for every name in the tree, and \textbf{processes} with \texttt{ps aux}, which lists every program the OS has created and is scheduling. I saw \textbf{memory} with \texttt{free -h}, which shows how the OS shares the physical RAM and swap, and \textbf{devices} with \texttt{lsblk}, which shows the disks the OS hides behind file-like names in \texttt{/dev}.
+
+\end{document}
