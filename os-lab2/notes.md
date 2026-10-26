@@ -2,103 +2,80 @@
 
 **Sergiu Gherasim, FAF-242** · Technical University of Moldova, FCIM · Operating Systems · Laboratory work no. 2
 
-The formatted report is [`OS_Practical_Work_2_Report.docx`](OS_Practical_Work_2_Report.docx).  
-The source code for the user program is [`sleep.c`](sleep.c).
+The formatted report is [`lab2-report.tex`](lab2-report.tex).
+The source code of the user program is [`sleep.c`](sleep.c).
 
 ## Purpose of the work
 
-- Build the xv6 kernel with a RISC-V cross-compiler and boot it in QEMU.
-- Use xv6 as a minimal Unix: run user commands, use pipes, and run the test suite.
-- Inspect the source code of user programs and locate system call implementations in the kernel.
-- Implement a custom xv6 user program (`sleep.c`), integrate it into the build system, and test it in xv6.
+- Build the xv6 kernel with a RISC-V cross-compiler and boot it under QEMU.
+- Use xv6 as a minimal Unix: run its programs, use a pipe, run the test suite.
+- Read the source of a user program and find the system calls in the kernel.
+- Write a new user program (`sleep`), add it to the build and test it inside xv6.
 
-## Part 1. Build and Boot xv6
+I worked on the Linux virtual machine of the course, which already has the toolchain. The submitted files are `user/sleep.c` and the modified `Makefile`; the answers to the two *Observe* boxes are in this file.
 
-Cloning and building xv6 for RISC-V:
+## Part 1. Build and boot xv6
 
-```bash
-git clone https://github.com/mit-pdos/xv6-riscv.git
-cd xv6-riscv
-make qemu
-```
+![RISC-V toolchain, QEMU and the cloned tree](screenshots/sc-1.png)
 
-The build compiles the kernel and user programs using the RISC-V toolchain, then launches QEMU to emulate the RISC-V hardware and boot the kernel:
+`riscv64-linux-gnu-gcc` is a normal GCC that produces code for another processor, so the kernel can be built without a RISC-V computer, and `qemu-system-riscv64` is the emulator that runs it. After `git clone` the tree holds `kernel/`, `user/`, the `Makefile` and the `README`.
 
-```text
-xv6 kernel is booting
+![make qemu: end of the build, boot banner and ls](screenshots/sc-2.png)
 
-hart 2 starting
-hart 1 starting
-init: starting sh
-$ 
-```
+`make qemu` builds `kernel/kernel` and every program in `UPROGS`, then `mkfs` packs them with `README` and the device files into the disk image `fs.img`, and QEMU starts. xv6 prints `xv6 kernel is booting`, `init` prints `init: starting sh`, and the shell prompt is `$`. The `ls` after it runs inside xv6 and lists the files of `fs.img`, not the Linux tree.
 
-## Part 2. Using xv6
+To leave QEMU: `Ctrl-A`, then `X`. That sequence belongs to QEMU, not to xv6 — the shell has no exit command.
 
-Running basic Unix utilities, pipes, and user tests inside xv6:
+## Part 2. Using xv6 as a Unix
 
-```text
-$ cat README
-$ echo hello xv6
-$ ls | grep c
-$ wc README
-$ usertests -q
-```
+![cat README, echo hello xv6 and wc README](screenshots/sc-3.png)
 
-### Questions & Answers
+`cat README` opens the file, copies it in blocks into a buffer and writes each block out. `echo hello xv6` prints its arguments. `wc README` prints the lines, words and bytes of the file (48, 336 and 2441), followed by its name.
 
-**1. List three programs xv6 ships with.**
+![A pipe inside xv6: ls | grep c](screenshots/sc-4.png)
 
-`cat`, `echo`, `wc`
+The shell creates a pipe with the `pipe` system call and gets two descriptors, one to write and one to read. It then calls `fork` twice and each child replaces itself with `exec`: the left program writes into the pipe, the right one reads from it. Neither program knows about the other.
 
-**2. You just used a pipe ( | ) inside xv6. Which two OS features must exist for a pipe to work? (Hint: think processes and communication.)**
+### Observe
 
-- Process management
-- Inter-process communication
+1. **List three programs xv6 ships with.** `cat`, `echo`, `wc`. The full list is `UPROGS` in the `Makefile`, and the source of each one is a small file in `user/`.
+2. **Which two OS features must exist for a pipe to work?** Processes and inter-process communication. The pipe only makes sense between two processes running at the same time, so the kernel must create (`fork`), schedule and run them. And because they have separate address spaces, they cannot share a buffer: the kernel owns the channel and copies the bytes through it.
+3. **How does the xv6 shell compare to the Linux shell from Lab 1?** It is much smaller: the same basic commands and pipes work, but there are far fewer of them (`clear` does not exist), there is no history or completion, and it is noticeably slower, because every program is started with a fresh `fork` and `exec` on an emulated processor.
 
-**3. In one sentence: how does the xv6 shell compare to the Linux shell from Lab 1?**
+## Part 3. Reading the source
 
-I have noticed that it is noticeably slower than the Linux shell and that it has a lower number of commands that I can use (for instance, `clear` is not present).
+`kernel/` is the system itself: it runs privileged, keeps the page table, schedules processes, stores files and handles system calls. `user/` holds ordinary unprivileged programs that run on top of it.
 
-## Part 3. Source Code Exploration
+![The first lines of user/ls.c](screenshots/sc-5.png)
 
-Inspecting user programs and locating system calls in the kernel:
+`user/ls.c` is a whole `ls` in about a hundred lines: `main` calls `ls` for every path, and `ls` opens the directory, reads its entries block by block and prints a name for each one, asking `stat` for the type and the size. `fmtname` and `ls` are local, but `open`, `read`, `close` and `fstat` are system calls declared in `user/user.h`.
 
-```bash
-sed -n "1,40p" user/ls.c
-sed -n "1,30p" user/cat.c
-cat user/user.h
-grep -n "sys_read\|sys_write" kernel/sysfile.c | head
-```
+![The first lines of user/cat.c](screenshots/sc-6.png)
 
-### Questions & Answers
+`user/cat.c` does one thing in a loop: `read` a block into a buffer, `write` it to descriptor 1, repeat until `read` returns 0. On an error it prints on descriptor 2 and exits with status 1.
 
-**1. Which system calls does `user/cat.c` use, and what does each one ask the kernel to do?**
+![user/user.h, the list of system calls](screenshots/sc-7.png)
 
-It uses: `read`, `write`, `exit`, `open`, `close`.
+`user/user.h` is the contract between the two folders: it declares the library helpers and every system call a program may make. These functions have no body in `user/`; `user/usys.S` turns each one into a few instructions that put the call number in a register and execute `ecall`, which switches into supervisor mode and jumps into the kernel.
 
-- `read`: asks the kernel to read data from an open file descriptor into a buffer.
-- `write`: asks the kernel to write data from a buffer to an open file descriptor (such as standard output).
-- `exit`: asks the kernel to terminate the calling process.
-- `open`: asks the kernel to open a specified file and return a file descriptor.
-- `close`: asks the kernel to release/close an open file descriptor.
+![Locating sys_read and sys_write in the kernel](screenshots/sc-8.png)
 
-**2. In which kernel file, and on which line, is sys_read implemented?**
+`kernel/syscall.c` reads the call number and dispatches through the table `syscalls`. The file system calls are in `kernel/sysfile.c`; `sys_read` gets its arguments with `argfd` and `argaddr`, then calls `fileread` on the open file.
 
-`sys_read` is implemented in `kernel/sysfile.c` on line 69.
+### Observe
 
-```text
-69:sys_read(void)
-83:sys_write(void)
-```
+1. **Which system calls does `user/cat.c` use?**
+   - `open` — find the named file, check permissions, return a file descriptor.
+   - `read` — copy the next bytes of an open file into a buffer of the process.
+   - `write` — copy bytes from a buffer to an open file (here the terminal).
+   - `close` — release the descriptor so its number can be used again.
+   - `exit` — terminate the process and give its status to the parent.
+2. **In which kernel file, and on which line, is `sys_read` implemented?** In `kernel/sysfile.c`, at line 69; the next function, `sys_write`, is at line 83. The numbers move when the file changes, so one searches for the name rather than remembering the line.
+3. **What is the difference between `kernel/` and `user/`?** `kernel/` is the operating system itself — privileged, it owns the hardware and cannot be removed without the machine stopping — while `user/` holds ordinary programs that run unprivileged on top of it and can be replaced or deleted freely.
 
-**3. In one sentence: what is the difference between the code in kernel/ and the code in user/?**
+## Part 4. Adding a user program
 
-The code in `kernel/` is the operating system itself, the OS cannot run without this, while the code in `user/` is for programs that run on top of the kernel, the OS can run without this.
-
-## Part 4. Adding a User Program (`sleep.c`)
-
-Creating `user/sleep.c` to pause execution for a given number of ticks:
+The kernel already implements the call that pauses a process: it takes a number of ticks, marks the process as sleeping and calls the scheduler until the timer wakes it. In the current `xv6-riscv` this call is named `pause`; it was called `sleep` until August 2025, when it was renamed to avoid confusion with the program (older copies of the tree, like the one the task sheet was written for, still show `sleep`).
 
 ```c
 #include "kernel/types.h"
@@ -116,43 +93,24 @@ main(int argc, char *argv[])
 }
 ```
 
-Adding the program to `UPROGS` in the `Makefile`:
+`argc` counts the words of the command line, including the program name, so a correct call has `argc == 2`. `atoi` turns `argv[1]` into the number the system call needs. `fprintf(2, ...)` writes the usage message on standard error and `exit(1)` reports failure.
 
-```make
-UPROGS=\
-	$U/_cat\
-	$U/_echo\
-	$U/_forktest\
-	$U/_grep\
-	$U/_init\
-	$U/_kill\
-	$U/_ln\
-	$U/_ls\
-	$U/_mkdir\
-	$U/_rm\
-	$U/_sh\
-	$U/_stressfs\
-	$U/_usertests\
-	$U/_grind\
-	$U/_wc\
-	$U/_zombie\
-	$U/_sleep\
-```
+![The new file user/sleep.c](screenshots/sc-9.png)
 
-Building and testing inside xv6:
+A file in `user/` is not compiled by itself: only the programs in `UPROGS` are built. Each line is `$U/_name\`, the indentation is a tab, and the list is one command continued from line to line.
 
-```text
-$ make qemu
-...
-$ sleep 10
-$ sleep
-usage: sleep <ticks>
-```
+![UPROGS with the new _sleep entry](screenshots/sc-10.png)
 
-When invoked with a tick argument (e.g. `sleep 10`), the process pauses before returning to the prompt. If invoked without an argument, it outputs the usage message.
+![Rebuilding, then sleep 10 inside xv6](screenshots/sc-11.png)
+
+After `make qemu`, `sleep` appears in `ls` like the other programs. `sleep 10` returns to the prompt after ten clock ticks without printing anything: the process really stopped and the scheduler ran something else meanwhile.
+
+![Calling sleep without an argument](screenshots/sc-12.png)
+
+With no argument `argc` is 1, the program takes the error branch, prints `usage: sleep <ticks>` and exits with status 1. The shell just shows the next prompt, because xv6 does not print exit statuses by default.
 
 ## Conclusion
 
-During this practical work, I explored the xv6 operating system and learned more about the interaction between user programs and the kernel. I worked with basic xv6 programs and observed how processes can communicate using pipes.
+Building the system from source reverses the view of Laboratory Work No. 1. On Linux I could only see programs from the outside, through `ps` and `/proc`; in xv6 I can read both sides of the same request: the program in `user/` calls `read` or `pause`, the stub executes `ecall`, the kernel looks the call up in its table and runs `sys_read` or `sys_pause`.
 
-I also analyzed the cat program and identified the system calls it uses, such as read, write, open, close, and exit. By locating their implementations in the xv6 kernel, I gained a better understanding of how user programs request services from the operating system. Overall, this practical work helped me better understand the role of the kernel, system calls, and inter-process communication in an operating system.
+The pipe showed the two features that make this cooperation useful: processes, created and scheduled by the kernel, and inter-process communication, a channel the kernel owns because the processes cannot share memory. Writing `sleep` closed the circle: a new file in `user/`, one tab-indented line in `UPROGS`, and a program that is part of the system that is built and booted.

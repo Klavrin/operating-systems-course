@@ -1,0 +1,352 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[left=2cm,right=1.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+\setlist{itemsep=1pt,topsep=4pt}
+
+\definecolor{codebackground}{HTML}{F7F7F7}
+\definecolor{codeframe}{HTML}{CBD5E1}
+\definecolor{terminalgreen}{HTML}{166534}
+\definecolor{terminalbackground}{HTML}{F3F8F4}
+\definecolor{headingblue}{HTML}{1E3A5F}
+\definecolor{commentgrey}{HTML}{6B7280}
+\definecolor{stringred}{HTML}{9F1239}
+
+\titleformat{\section}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {\thesection}{0.8em}{\MakeUppercase}
+\titleformat{name=\section,numberless}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{0pt}{12pt}
+\titlespacing*{\subsection}{0pt}{10pt}{6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Operating Systems}}
+\fancyhead[R]{\small Laboratory Work No. 2}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+\lstdefinestyle{code}{
+  language=C,
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  keywordstyle=\color{headingblue}\bfseries,
+  commentstyle=\color{commentgrey}\itshape,
+  stringstyle=\color{stringred},
+  backgroundcolor=\color{codebackground},
+  frame=single,
+  rulecolor=\color{codeframe},
+  numbers=left,
+  numberstyle=\tiny\color{commentgrey},
+  numbersep=6pt,
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=4,
+  xleftmargin=0.6cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+\lstdefinestyle{terminal}{
+  language={},
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  backgroundcolor=\color{terminalbackground},
+  frame=single,
+  rulecolor=\color{terminalgreen},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=8,
+  xleftmargin=0.25cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+% \qa{number}{question} -- the answer follows as a normal paragraph
+\newcommand{\qa}[2]{%
+  \par\needspace{5\baselineskip}\medskip
+  \noindent\textbf{#1.~#2}\par\smallskip\noindent}
+
+% \shot{n}{caption} -- includes screenshots/sc-n.png (or sc-n.png next to this file)
+\newcommand{\shot}[2]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{screenshots/sc-#1.png}
+      {\includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{screenshots/sc-#1}}
+      {\IfFileExists{sc-#1.png}
+        {\includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{sc-#1}}
+        {\fbox{\parbox[c][3cm][c]{0.9\linewidth}{\centering\color{red}\bfseries missing sc-#1.png}}}}
+    \caption{#2}
+    \label{fig:sc-#1}
+  \end{figure}}
+
+\begin{document}
+
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begin{center}
+    \includegraphics[width=3.4cm]{LOGO_UTM.png}\par
+    \vspace{0.25cm}
+
+    {\bfseries\fontsize{14}{17}\selectfont
+      MINISTRY OF EDUCATION AND RESEARCH\par
+      OF THE REPUBLIC OF MOLDOVA\par
+      Technical University of Moldova\par
+      Faculty of Computers, Informatics and Microelectronics\par
+      Department of Software Engineering and Automation\par
+    }
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{16}{19}\selectfont Sergiu Gherasim, FAF-242\par}
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{36}{40}\selectfont Report\par}
+    \vspace{0.25cm}
+    {\itshape\fontsize{20}{24}\selectfont Laboratory Work No. 2\par}
+    {\bfseries\itshape\fontsize{20}{24}\selectfont Operating Systems\par}
+
+    \vspace{1cm}
+    {\fontsize{20}{25}\selectfont Topic: Meet the OS You Will Build\par}
+    \vspace{0.2cm}
+    {\fontsize{15}{19}\selectfont Building, Using and Extending xv6 on RISC-V\par}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    {\fontsize{15}{18}\selectfont Checked by:}\par
+    \textbf{Patricia Rei\c{t}man}, \textit{university assistant}
+  \end{flushright}
+
+  \vfill
+  \begin{center}
+    {\bfseries\fontsize{14}{17}\selectfont Chi\c{s}in\u{a}u -- 2026}
+  \end{center}
+\end{titlepage}
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+In Laboratory Work No.~1 the operating system was met from the outside: a finished Linux system was observed through the terminal, and the programs could only be seen as black boxes that ask the kernel for help. In this laboratory work the view is reversed. The system itself is built from source, so both sides of every request become readable: the user program that asks and the kernel code that answers.
+
+The system is \textbf{xv6} for RISC-V, a modern re-implementation of Unix Version~6 written in about 9\,000 lines of C. It is a complete, bootable Unix, but small enough to read the whole kernel. It is compiled with a RISC-V cross-compiler and started under QEMU, an emulator that pretends to be a RISC-V computer. The work has four steps: clone and build xv6, use it as a tiny Unix, read the source of a user program and of the system calls behind it, and finally add a new program, \texttt{sleep}, to the system and to its build.
+
+I worked on the Linux virtual machine of the course, which already contains the toolchain. The submitted files are \texttt{user/sleep.c} and the modified \texttt{Makefile}; the answers to the two \emph{Observe} boxes are in \texttt{notes.md}.
+
+\shot{1}{The RISC-V toolchain, QEMU and the cloned xv6 tree}
+
+The cross-compiler is a normal GCC, but it produces code for another processor: \texttt{riscv64-linux-gnu-gcc} runs on the Linux VM and writes RISC-V binaries, so the kernel can be built without a RISC-V computer. \texttt{qemu-system-riscv64} is the emulator that will execute them. After \texttt{git clone} the tree contains the kernel in \texttt{kernel/}, the programs in \texttt{user/}, the \texttt{Makefile} that builds both, and the \texttt{README}.
+
+\newpage
+\section{Building and Booting xv6}
+
+\subsection{The Build}
+
+\texttt{make qemu} does two things. First it builds \texttt{kernel/kernel}, the operating system itself, and every program listed in the \texttt{UPROGS} variable of the \texttt{Makefile}. Then a tool called \texttt{mkfs} packs those programs, together with \texttt{README} and the device files, into \texttt{fs.img}, a small disk image that xv6 will find as a file system. Finally \texttt{make} starts QEMU with the kernel, the disk image and no graphics window, so the machine appears as text in the terminal of the VM.
+
+\shot{2}{make qemu: end of the build, the xv6 boot banner and ls}
+
+The last lines of the build are the linking of the kernel. Then the emulated machine starts: xv6 prints \texttt{xv6 kernel is booting}, starts the first process, \texttt{init}, which prints \texttt{init: starting sh} and gives the shell. The prompt is \texttt{\$}, and the \texttt{ls} that follows runs \emph{inside} xv6, not on Linux: it lists the files of the xv6 disk image, which are the programs \texttt{mkfs} packed there.
+
+To leave QEMU the sequence is \texttt{Ctrl-A} and then \texttt{X}. This is handled by QEMU itself, not by xv6; the small shell of xv6 has no exit command.
+
+\newpage
+\section{Using xv6 as a Unix}
+
+The programs of xv6 are the ancestors of the Linux commands used in Laboratory Work No.~1, with the same names and the same habits: they read from standard input, write to standard output and can be chained with a pipe.
+
+\shot{3}{cat README, echo hello xv6 and wc README inside xv6}
+
+\texttt{cat README} prints the text of the file to the terminal: \texttt{cat} opens the file, copies it in blocks into a buffer and writes each block out. \texttt{echo hello xv6} prints its arguments; the same text sent through a pipe, \texttt{echo hello xv6 | wc}, would instead be counted. \texttt{wc README} prints three numbers, the lines, the words and the bytes of the file, followed by its name: 48, 336 and 2441.
+
+\subsection{Pipes}
+
+\shot{4}{A pipe inside xv6: ls | grep c}
+
+A shell builds a pipe with the \texttt{pipe} system call, which returns two file descriptors: one writes, the other reads. Then it starts both programs with \texttt{fork}, and each child replaces itself with \texttt{exec}: the left program writes into the pipe, the right one reads from it. Here \texttt{ls} lists the programs of xv6 and \texttt{grep c} keeps only the names that contain the letter \texttt{c}. Neither program knows about the other; the kernel moves the bytes between them.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    Program & What it does \\
+    \midrule
+    \texttt{ls} & lists the entries of a directory \\
+    \texttt{cat} & copies files to standard output \\
+    \texttt{echo} & prints its arguments \\
+    \texttt{wc} & counts lines, words and bytes \\
+    \texttt{grep} & prints the lines that match a pattern \\
+    \texttt{usertests} & runs the kernel test suite (optional) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Some programs that xv6 ships with, all of them under \texttt{user/}.}
+\end{table}
+
+\qa{1}{List three programs xv6 ships with.}
+\texttt{cat}, \texttt{echo} and \texttt{wc}. The full list is the \texttt{UPROGS} variable of the \texttt{Makefile}, and the source of each one is a single small file in \texttt{user/}.
+
+\qa{2}{You just used a pipe (\texttt{|}) inside xv6. Which two OS features must exist for a pipe to work?}
+\textbf{Processes} and \textbf{inter-process communication}. A pipe only makes sense between two processes running at the same time, so the kernel must be able to create (\texttt{fork}), run and schedule them. And because the two processes have separate address spaces, they cannot share a buffer directly: the kernel must own a communication channel between them and copy the bytes through it.
+
+\qa{3}{In one sentence: how does the xv6 shell compare to the Linux shell from Lab 1?}
+It is much smaller: the same basic commands and pipes work, but there are far fewer of them (for example \texttt{clear} does not exist), there is no command history or completion, and it is noticeably slower, because every program is started with a fresh \texttt{fork} and \texttt{exec} on an emulated processor.
+
+\newpage
+\section{Reading the Source}
+
+The tree is split into two folders, and this split is the shape of every operating system. \texttt{kernel/} is the system itself: it runs in supervisor mode, keeps the page table, schedules the processes, stores the files and handles the system calls. \texttt{user/} holds ordinary programs that run on top of it. A program in \texttt{user/} cannot touch the disk or the devices; it can only ask the kernel with a system call.
+
+\subsection{A User Program}
+
+\shot{5}{The first lines of user/ls.c}
+
+\texttt{user/ls.c} is a complete \texttt{ls} in about a hundred lines. The shape is the usual C program: \texttt{main} reads the arguments and calls \texttt{ls} for each path. \texttt{ls} then \texttt{open}s the path, \texttt{read}s the directory entries block by block and prints a name for every entry; for each one it calls \texttt{stat} to know the type and the size. The functions \texttt{fmtname} and \texttt{ls} are local, but \texttt{open}, \texttt{read}, \texttt{close} and \texttt{fstat} are not: they are declared in \texttt{user/user.h} and implemented in the kernel.
+
+\shot{6}{The first lines of user/cat.c}
+
+\texttt{user/cat.c} is even smaller. Its \texttt{main} calls \texttt{cat} for every file name, and \texttt{cat} does one thing in a loop: \texttt{read} a block into a buffer, \texttt{write} that buffer to descriptor 1, repeat until \texttt{read} returns 0. If a file cannot be opened, it prints an error on descriptor 2 and exits with status 1.
+
+\subsection{The System Call Interface}
+
+\shot{7}{user/user.h, the list of system calls available to a program}
+
+\texttt{user/user.h} is the contract between the two folders. It declares a few library helpers (\texttt{printf}, \texttt{atoi}, \texttt{malloc}) and, below them, every system call a user program may make. These functions have no body in \texttt{user/}: their implementation is a few instructions of assembly (in \texttt{user/usys.S}) that put the call number in a register and execute the \texttt{ecall} instruction. That single instruction switches the processor into supervisor mode and jumps into the kernel, which does the real work and returns.
+
+\shot{8}{Locating sys\_read and sys\_write in the kernel}
+
+On the other side of \texttt{ecall} sits \texttt{kernel/syscall.c}, which reads the call number and dispatches to the right function through the table \texttt{syscalls}. The file system calls themselves are in \texttt{kernel/sysfile.c}: \texttt{sys\_read} first fetches the arguments from the user process with \texttt{argfd} and \texttt{argaddr}, then calls \texttt{fileread} on the open file, which finally asks the inode to read the blocks.
+
+\qa{1}{Which system calls does \texttt{user/cat.c} use, and what does each one ask the kernel to do?}
+It uses \texttt{open}, \texttt{read}, \texttt{write}, \texttt{close} and \texttt{exit}.
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{@{}p{0.16\linewidth}p{0.76\linewidth}@{}}
+    \toprule
+    Call & Request to the kernel \\
+    \midrule
+    \texttt{open} & find the named file, check the permissions and return a file descriptor \\
+    \texttt{read} & copy the next bytes of an open file into a buffer of the process \\
+    \texttt{write} & copy bytes from a buffer to an open file (here descriptor 1, the terminal) \\
+    \texttt{close} & release a file descriptor so the number may be used again \\
+    \texttt{exit} & terminate the process and give its status to the parent \\
+    \bottomrule
+  \end{tabular}
+  \caption{The system calls of \texttt{cat}. Each one is a request that only the kernel may perform.}
+\end{table}
+
+\qa{2}{In which kernel file, and on which line, is \texttt{sys\_read} implemented?}
+In \texttt{kernel/sysfile.c}. The \texttt{grep} output shows \texttt{sys\_read} at line 69, and the next function, \texttt{sys\_write}, at line 83. The numbers are the ones of the current \texttt{xv6-riscv} master; they move when the file changes, which is why one searches for the name instead of remembering the line.
+
+\qa{3}{In one sentence: what is the difference between the code in \texttt{kernel/} and the code in \texttt{user/}?}
+\texttt{kernel/} is the operating system itself, which runs privileged, owns the hardware and cannot be removed without the machine stopping, while \texttt{user/} holds the ordinary programs that run unprivileged on top of it and may be replaced or deleted freely.
+
+\newpage
+\section{Adding a User Program}
+
+\subsection{Using the Sleep System Call}
+
+The kernel already implements the call that pauses a process: it takes a number of clock ticks, marks the calling process as sleeping and calls the scheduler, which runs something else until the timer wakes the process up. In the current \texttt{xv6-riscv} this system call is named \texttt{pause}; it was called \texttt{sleep} until August 2025, when it was renamed to avoid confusion with the program of the same name (older copies of the tree, such as the one used by the task sheet, still show \texttt{sleep}). What is missing is a program that uses it. The task asks for a program that takes exactly one argument and, if the argument is missing, prints a usage message instead of crashing.
+
+\begin{lstlisting}[style=code,caption={user/sleep.c, the new program}]
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main(int argc, char *argv[])
+{
+  if(argc != 2){
+    fprintf(2, "usage: sleep <ticks>\n");
+    exit(1);
+  }
+  pause(atoi(argv[1]));   // system call into the kernel
+  exit(0);
+}
+\end{lstlisting}
+
+\texttt{argc} counts the words of the command line including the program name, so a correct call has \texttt{argc == 2}. \texttt{argv[1]} is the text typed after the name, and \texttt{atoi} turns it into a number, because the system call needs an integer. \texttt{fprintf(2, ...)} writes the usage message on descriptor 2, standard error, and \texttt{exit(1)} reports failure to the shell. A successful run ends with \texttt{exit(0)}.
+
+\shot{9}{The new file user/sleep.c}
+
+\subsection{Teaching the Build About It}
+
+A file in \texttt{user/} is not compiled by itself. The \texttt{Makefile} holds the list \texttt{UPROGS} of the programs that go into \texttt{fs.img}, and only those are built. Each line is the name of the object with an underscore in front, followed by a backslash, and the indentation is a tab: the list is one long command continued from line to line, so a space instead of a tab breaks it.
+
+\shot{10}{UPROGS in the Makefile with the new \_sleep entry}
+
+\begin{lstlisting}[style=terminal,caption={The end of the UPROGS list after the change}]
+UPROGS=\
+	$U/_cat\
+	$U/_echo\
+	...
+	$U/_dorphan\
+	$U/_sync\
+	$U/_sleep\
+	$U/_args\
+\end{lstlisting}
+
+\subsection{Testing Inside xv6}
+
+\shot{11}{Rebuilding, then sleep 10 inside xv6}
+
+After \texttt{make qemu} the new program is part of the disk image, so it appears in \texttt{ls} like the others. \texttt{sleep 10} returns to the prompt after ten clock ticks without printing anything: the process really did stop, and the shell was not running meanwhile, which shows that the scheduler had other work to do or the processor was idle. This is the first program of the course that calls into a kernel compiled on the same machine.
+
+\shot{12}{Calling sleep without an argument prints the usage message}
+
+With no argument, \texttt{argc} is 1 and the program takes the error branch: it prints \texttt{usage: sleep <ticks>} and exits with status 1. The shell simply shows the next prompt, since xv6 does not report exit statuses by default.
+
+\newpage
+\section*{Conclusions}
+\addcontentsline{toc}{section}{Conclusions}
+
+In this laboratory work I built an operating system from source and ran it on emulated hardware. Comparing it with Laboratory Work No.~1 makes the position of the kernel clear: on Linux I could only see programs from the outside, with \texttt{ps} and \texttt{/proc}, while in xv6 I could read both sides of the same request. The user program in \texttt{user/} calls \texttt{read} or \texttt{sleep}, the assembly stub executes \texttt{ecall}, the kernel looks the call up in its table and runs \texttt{sys\_read} or \texttt{sys\_pause}; nothing in \texttt{user/} can touch a disk or a device by itself.
+
+The pipe experiment showed the two features that make this cooperation useful: processes, created and scheduled by the kernel, and inter-process communication, a channel owned by the kernel because the processes cannot share memory directly. Writing \texttt{sleep} closed the circle: a new file in \texttt{user/}, one tab-indented line in \texttt{UPROGS}, and the program becomes part of the system that is built and booted. The kernel and the programs are the same kind of C code, separated only by privilege and by the system call interface.
+
+\end{document}
