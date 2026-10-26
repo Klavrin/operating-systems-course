@@ -1,0 +1,365 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[left=2cm,right=1.5cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlength{\emergencystretch}{2em}
+\setlist{itemsep=1pt,topsep=4pt}
+
+\definecolor{codebackground}{HTML}{F7F7F7}
+\definecolor{codeframe}{HTML}{CBD5E1}
+\definecolor{terminalgreen}{HTML}{166534}
+\definecolor{terminalbackground}{HTML}{F3F8F4}
+\definecolor{headingblue}{HTML}{1E3A5F}
+\definecolor{commentgrey}{HTML}{6B7280}
+\definecolor{stringred}{HTML}{9F1239}
+
+\titleformat{\section}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {\thesection}{0.8em}{\MakeUppercase}
+\titleformat{name=\section,numberless}
+  {\normalfont\bfseries\centering\fontsize{13}{16}\selectfont}
+  {}{0pt}{\MakeUppercase}
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsection}{0.7em}{}
+\titlespacing*{\section}{0pt}{0pt}{12pt}
+\titlespacing*{\subsection}{0pt}{10pt}{6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textit{Operating Systems}}
+\fancyhead[R]{\small Laboratory Work No. 4}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{15pt}
+
+\lstdefinestyle{code}{
+  language=C,
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  keywordstyle=\color{headingblue}\bfseries,
+  commentstyle=\color{commentgrey}\itshape,
+  stringstyle=\color{stringred},
+  backgroundcolor=\color{codebackground},
+  frame=single,
+  rulecolor=\color{codeframe},
+  numbers=left,
+  numberstyle=\tiny\color{commentgrey},
+  numbersep=6pt,
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=4,
+  xleftmargin=0.6cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+\lstdefinestyle{terminal}{
+  language={},
+  basicstyle=\ttfamily\fontsize{8.5}{10.5}\selectfont,
+  backgroundcolor=\color{terminalbackground},
+  frame=single,
+  rulecolor=\color{terminalgreen},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=8,
+  xleftmargin=0.25cm,
+  xrightmargin=0.15cm,
+  framexleftmargin=0.15cm,
+  framesep=5pt,
+  aboveskip=7pt,
+  belowskip=7pt,
+  captionpos=b
+}
+
+% \qa{number}{question} -- the answer follows as a normal paragraph
+\newcommand{\qa}[2]{%
+  \par\needspace{5\baselineskip}\medskip
+  \noindent\textbf{#1.~#2}\par\smallskip\noindent}
+
+% \shot{n}{caption} -- includes screenshots/sc-n.png (or sc-n.png next to this file)
+\newcommand{\shot}[2]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{screenshots/sc-#1.png}
+      {\includegraphics[width=\linewidth,height=0.5\textheight,keepaspectratio]{screenshots/sc-#1}}
+      {\IfFileExists{sc-#1.png}
+        {\includegraphics[width=\linewidth,height=0.5\textheight,keepaspectratio]{sc-#1}}
+        {\fbox{\parbox[c][3cm][c]{0.9\linewidth}{\centering\color{red}\bfseries missing sc-#1.png}}}}
+    \caption{#2}
+    \label{fig:sc-#1}
+  \end{figure}}
+
+\begin{document}
+
+\begin{titlepage}
+  \thispagestyle{empty}
+  \begin{center}
+    \includegraphics[width=3.4cm]{LOGO_UTM.png}\par
+    \vspace{0.25cm}
+
+    {\bfseries\fontsize{14}{17}\selectfont
+      MINISTRY OF EDUCATION AND RESEARCH\par
+      OF THE REPUBLIC OF MOLDOVA\par
+      Technical University of Moldova\par
+      Faculty of Computers, Informatics and Microelectronics\par
+      Department of Software Engineering and Automation\par
+    }
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{16}{19}\selectfont Sergiu Gherasim, FAF-242\par}
+
+    \vspace{1.4cm}
+    {\bfseries\fontsize{36}{40}\selectfont Report\par}
+    \vspace{0.25cm}
+    {\itshape\fontsize{20}{24}\selectfont Laboratory Work No. 4\par}
+    {\bfseries\itshape\fontsize{20}{24}\selectfont Operating Systems\par}
+
+    \vspace{1cm}
+    {\fontsize{20}{25}\selectfont Topic: The xv6 Shell from the Outside\par}
+    \vspace{0.2cm}
+    {\fontsize{15}{19}\selectfont bash versus sh, argv, and the Shell Source\par}
+  \end{center}
+
+  \vfill
+  \begin{flushright}
+    {\fontsize{15}{18}\selectfont Checked by:}\par
+    \textbf{Patricia Rei\c{t}man}, \textit{university assistant}
+  \end{flushright}
+
+  \vfill
+  \begin{center}
+    {\bfseries\fontsize{14}{17}\selectfont Chi\c{s}in\u{a}u -- 2026}
+  \end{center}
+\end{titlepage}
+
+\pagenumbering{arabic}
+\setcounter{page}{2}
+\tableofcontents
+\newpage
+
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+The whole user interface of xv6 is a single program, \texttt{user/sh.c}, about 500 lines long. It reads a line, splits it into a command and its arguments, and then either runs the program or does the small amount of work that a program cannot do for itself. In this laboratory work that shell is used side by side with bash: the same commands are typed in both, and the differences show what a shell must do and what bash adds on top of it.
+
+The work has four parts. First the \texttt{sleep} program from Laboratory Work No.~2 is fixed for the current xv6, where the system call was renamed from \texttt{sleep} to \texttt{pause}. Then ten commands are run in bash and in the xv6 shell, and the results are collected in a table. Third, a tiny program, \texttt{args}, is written twice, once for xv6 and once for Linux, to see exactly which arguments each shell hands to a program and therefore who expands \texttt{*} and who removes quotes. Finally, four \texttt{grep} commands are run over \texttt{user/sh.c} to read how the shell is built from the inside.
+
+I used the Linux virtual machine of the course with the same \texttt{xv6-riscv} tree as in the previous labs. The submitted files are \texttt{user/sleep.c}, \texttt{user/args.c}, \texttt{args\_linux.c} and the \texttt{Makefile}.
+
+\newpage
+\section{Fixing sleep for the current xv6}
+
+In August 2025 the xv6 authors renamed the \texttt{sleep} system call to \texttt{pause}, so a \texttt{sleep} program written for an older tree no longer compiles. The first step is to ask the tree which name it uses:
+
+\begin{lstlisting}[style=terminal,caption={Checking the name of the system call in user/user.h}]
+$ grep -n "pause\|sleep" user/user.h
+int pause(int);
+\end{lstlisting}
+
+\shot{1}{The grep result in user/user.h}
+
+My tree declares \texttt{pause}, so the call inside the program has to change. The program itself is still called \texttt{sleep}, because that is the name the course gives to it and the name that must appear in \texttt{UPROGS}.
+
+\shot{2}{The updated user/sleep.c}
+
+\begin{lstlisting}[style=code,caption={user/sleep.c after the change}]
+#include "kernel/types.h"
+#include "user/user.h"
+
+int
+main(int argc, char *argv[])
+{
+  if(argc != 2){
+    fprintf(2, "usage: sleep <ticks>\n");
+    exit(1);
+  }
+  pause(atoi(argv[1]));   // was sleep() before August 2025
+  exit(0);
+}
+\end{lstlisting}
+
+Only one line changes: the comment marks the call that used to be \texttt{sleep()}. The rest of the program works as before, since the two names describe the same system call with the same argument, a number of clock ticks.
+
+\shot{3}{Running the program with an argument}
+
+After \texttt{make qemu} the program is rebuilt into \texttt{fs.img} and starts from the xv6 prompt. With one argument it waits for that many ticks and returns to the prompt without printing anything. Without an argument \texttt{argc} is 1, so the program prints \texttt{usage: sleep <ticks>} and exits with status 1 instead of reading a missing argument.
+
+\newpage
+\section{bash versus the xv6 shell}
+
+Every command was run twice: once in bash on Linux, inside an empty folder that contains a file named \texttt{README}, and once at the xv6 prompt.
+
+\shot{4}{Basic commands and cd in bash}
+
+\shot{5}{Redirection, pipe, grouping and background in bash}
+
+In bash \texttt{pwd} prints the current directory, \texttt{ls} lists it and \texttt{echo} prints its arguments. A pipe connects the standard output of one program to the standard input of the next, so \texttt{ls | grep READ} keeps only the line with \texttt{README}, and \texttt{(echo a; echo b) | wc} counts the output of a group of commands. A trailing \texttt{\&} puts the command in the background and bash prints a job number.
+
+\shot{6}{The same commands in xv6}
+
+\shot{7}{ls failing after cd d, and the working alternative /ls}
+
+The xv6 shell runs the same programs, but it does much less around them. Its \texttt{ls} prints the name, the type, the inode number and the size of every entry, so \texttt{ls | grep READ} shows more than bash. There is no globbing, no variable expansion and no quote removal, and the shell cannot read a command that continues on a second line.
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.30\linewidth}>{\raggedright\arraybackslash}p{0.14\linewidth}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Command & Tests & bash & xv6 \\
+    \midrule
+    \texttt{echo hello > f ; cat < f} & redirection & works & works \\
+    \texttt{ls | grep READ} & pipe & prints \texttt{README} & works, but prints name, type, inode and size \\
+    \texttt{(echo a; echo b) | wc} & grouping, list & \texttt{2 2 4} & \texttt{syntax}: no multi-line commands \\
+    \texttt{echo one ; echo two} & sequence & \texttt{one}, then \texttt{two} & \texttt{one}, then \texttt{two} \\
+    \texttt{echo bg \&} & background & \texttt{[1] 6011} and \texttt{bg} & \texttt{bg} \\
+    \texttt{ls *} & globbing & \texttt{f README} & \texttt{ls: cannot open *} \\
+    \texttt{echo \$HOME} & variables & \texttt{/home/sergiu} & \texttt{\$HOME} \\
+    \texttt{echo "a b"} & quotes & \texttt{a b} & \texttt{"a b"} \\
+    \texttt{mkdir d ; cd d ; ls ..} & PATH & \texttt{d f README} & \texttt{exec mkdir failed}, \texttt{exec cd failed} \\
+    arrow up, Tab, Ctrl+R & history, completion & work & do not work \\
+    \bottomrule
+  \end{tabularx}
+  \caption{The same commands in both shells.}
+\end{table}
+
+\qa{1}{List the features both shells have, and the ones only bash has.}
+Both shells execute programs, connect them with pipes (\texttt{|}), redirect input and output (\texttt{<}, \texttt{>}), run a command in the background (\texttt{\&}), group commands with parentheses, run commands in sequence with \texttt{;}, and change directory with \texttt{cd}.
+
+Only bash has command history, tab completion, environment variables and \texttt{\$} expansion, a \texttt{PATH} to look programs up, job control (\texttt{jobs}, \texttt{fg}, \texttt{bg}), command substitution, and a scripting language with variables and loops.
+
+\qa{2}{In xv6, \texttt{ls} stops working after \texttt{cd d}. Why? Find a way to run \texttt{ls} from inside \texttt{d} anyway.}
+Because xv6 has no \texttt{PATH} variable. When a name contains no slash, \texttt{exec} looks for the file in the current directory only. After \texttt{cd d} the current directory is the empty \texttt{d}, so there is no file called \texttt{ls} to run. Giving the absolute path \texttt{/ls} works, because a name that starts with a slash is resolved from the root of the file system, where the programs of \texttt{fs.img} actually live.
+
+\qa{3}{Which missing feature would you miss most in daily work, and which would be easiest to add?}
+Command history and tab completion, because they are used in every single command. History would also be the easiest to add: the shell already reads its input with \texttt{getcmd}, so it could keep the lines it has read in a buffer and let the arrow keys walk through them.
+
+\newpage
+\section{Who expands \texttt{*}? A program that prints its argv}
+
+The same program is written twice. For xv6 it uses the two xv6 headers and \texttt{exit}, and it is added to \texttt{UPROGS} like \texttt{sleep}. For Linux only \texttt{stdio.h} is needed and \texttt{main} returns 0.
+
+\begin{lstlisting}[style=code,caption={user/args.c for xv6}]
+#include "kernel/types.h"
+#include "user/user.h"
+
+int main(int argc, char *argv[]) {
+  printf("argc = %d\n", argc);
+  for (int i = 0; i < argc; i++)
+    printf("argv[%d] = [%s]\n", i, argv[i]);
+  exit(0);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=code,caption={args\_linux.c for Linux}]
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+  printf("argc = %d\n", argc);
+  for (int i = 0; i < argc; i++)
+    printf("argv[%d] = [%s]\n", i, argv[i]);
+  return 0;
+}
+\end{lstlisting}
+
+\shot{8}{args.c and the UPROGS line}
+
+The Linux version is compiled with \texttt{gcc -o args args\_linux.c} and started as \texttt{./args}, because the current directory is not in \texttt{PATH} by default. The xv6 version is started as \texttt{args}, because in xv6 every program lives in the directory the shell is in.
+
+\shot{9}{The args output in xv6}
+
+\shot{10}{The args\_linux output in bash}
+
+\qa{1}{Paste both outputs for \texttt{args *.c "x y"}. How many arguments did each program receive?}
+In bash the program receives 3 arguments:
+\begin{lstlisting}[style=terminal]
+argc = 3
+argv[0] = [./args]
+argv[1] = [args_linux.c]
+argv[2] = [x y]
+\end{lstlisting}
+In xv6 it receives 4:
+\begin{lstlisting}[style=terminal]
+argc = 4
+argv[0] = [args]
+argv[1] = [*.c]
+argv[2] = ["x]
+argv[3] = [y"]
+\end{lstlisting}
+The difference is one argument: bash replaced the pattern with a file name and joined \texttt{"x y"} into a single word, while xv6 kept both the star and the quotes as ordinary characters.
+
+\qa{2}{So who turns \texttt{*.c} into file names and removes the quotes: the program, the kernel, or the shell?}
+The shell. The program only receives the list of words that is already prepared, and the kernel only copies that list into the new process when \texttt{exec} is called. Since the same \texttt{args} program prints a file name under bash and a literal star under xv6, the change must have happened before the program started: it is part of what the shell does when it parses the line.
+
+\qa{3}{What happened to the extra spaces in \texttt{one two three}?}
+They disappear before the program runs. The shell treats every run of unquoted spaces as a single separator, so \texttt{args one two three} arrives as \texttt{argv[1] = [one]}, \texttt{argv[2] = [two]}, \texttt{argv[3] = [three]}, and the program cannot tell how many spaces were typed. Both shells behave the same way here.
+
+\newpage
+\section{Reading the shell}
+
+The shell is one \texttt{while} loop in \texttt{main}: read a line with \texttt{getcmd}, parse it into a tree of commands, run the tree, repeat. Four \texttt{grep} commands show the parts of that loop.
+
+\shot{11}{The kinds of command defined in user/sh.c}
+
+\texttt{user/sh.c} has about 500 lines. The five kinds of command are numbered constants, and each kind is represented by a struct that points to its parts: an \texttt{execcmd} holds the argument vector, a \texttt{redircmd} holds the file to open, and the pipe, list and background commands hold pointers to the commands they connect.
+
+\shot{12}{Where each kind of command is run}
+
+\texttt{runcmd} is a \texttt{switch} over the kind of command. \texttt{EXEC} calls \texttt{exec}; \texttt{REDIR} opens the file, replaces the right descriptor with \texttt{dup} and runs the inner command; \texttt{PIPE} creates a pipe, forks twice and gives each child one end; \texttt{LIST} runs the left command, waits, then the right one; \texttt{BACK} runs the left command in a child without waiting.
+
+\shot{13}{The code that handles cd}
+
+\qa{1}{Name the five kinds of command the xv6 shell knows and the character that produces each.}
+\texttt{EXEC} (a plain command), \texttt{REDIR} (\texttt{<}, \texttt{>} or \texttt{>>}), \texttt{PIPE} (\texttt{|}), \texttt{LIST} (\texttt{;}) and \texttt{BACK} (\texttt{\&}). They are defined as the numbers 1 to 5 at the top of \texttt{user/sh.c}, together with \texttt{MAXARGS} = 10, the largest number of arguments a command may have.
+
+\qa{2}{Where is \texttt{cd} handled, and why is it not run as a separate program?}
+It is handled in the \texttt{main} loop of \texttt{user/sh.c}, before the line is parsed: if the line starts with \texttt{cd} followed by a space, the shell cuts the newline, calls \texttt{chdir(cmd+3)} itself and continues. A separate program could not do it, because every program runs as a child process with its own copy of the working directory. The child would change its own directory and then exit, and the shell would still be where it was. For the change to be visible, it must happen in the shell process itself.
+
+\qa{3}{Search sh.c for any code that handles \texttt{*} or \texttt{\$}. What does that explain about Part 2?}
+There is none. The parser only knows spaces, the redirection characters, \texttt{|}, \texttt{;}, \texttt{\&} and parentheses. A star and a dollar sign are copied into the argument vector like any other character, which is why \texttt{ls *} asks for a file literally named \texttt{*} and \texttt{echo \$HOME} prints \texttt{\$HOME}: no part of xv6 expands them.
+
+\newpage
+\section*{Conclusions}
+\addcontentsline{toc}{section}{Conclusions}
+
+This laboratory work looked at the same shell from three sides: its behaviour, its contract with programs, and its source. Running identical commands showed that xv6 and bash share the core of the Unix interface -- programs, pipes, redirection, sequences, groups and background jobs -- while bash adds everything that makes a shell comfortable in daily use: history, completion, variables, \texttt{PATH} lookup and a scripting language.
+
+The \texttt{args} experiment separated the responsibilities cleanly. Wildcards and quotes never reach the program: the shell expands them while it parses the line, and the kernel only copies the finished argument list into the new process. The same program prints \texttt{*.c} in xv6 and a file name in bash, which proves that the difference is in the shell and nowhere else.
+
+Reading \texttt{user/sh.c} explained the last mystery of the table: the file contains no code for \texttt{*} or \texttt{\$}, so xv6 cannot expand them, and it handles \texttt{cd} inside its own \texttt{main} loop because a child process could not change the working directory of its parent. The shell is small enough to read completely, and after this work its behaviour stops being magic: every line of the ~500-line file maps to one thing the shell does with a command line.
+
+\end{document}
