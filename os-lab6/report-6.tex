@@ -104,6 +104,22 @@
   captionpos=b
 }
 
+% \shot{n}{caption} -- includes screenshots/sc-n.png (or sc-n.png next to this file)
+\newcommand{\shot}[2]{%
+  \begin{figure}[H]
+    \centering
+    \IfFileExists{screenshots/sc-#1.png}
+      {\includegraphics[width=\linewidth,height=0.5\textheight,keepaspectratio]{screenshots/sc-#1}}
+      {\IfFileExists{sc-#1.png}
+        {\includegraphics[width=\linewidth,height=0.5\textheight,keepaspectratio]{sc-#1}}
+        {\fbox{\parbox[c][3cm][c]{0.9\linewidth}{\centering\color{red}\bfseries missing sc-#1.png}}}}
+    \caption{#2}
+    \label{fig:sc-#1}
+  \end{figure}}
+
+% \val{...} -- a value that was checked against the screenshots (now plain text, kept for reference).
+\newcommand{\val}[1]{#1}
+
 % \qa{number}{question} -- the answer follows as a normal paragraph
 \newcommand{\qa}[2]{%
   \par\needspace{5\baselineskip}\medskip
@@ -182,28 +198,9 @@ An on-disk inode (\texttt{struct dinode}) stores the type of the file, the devic
 \newpage
 \section{Read What xv6 Shows You}
 
-After \texttt{make clean ; make qemu} I listed the root directory and created an empty directory:
+After \texttt{make clean ; make qemu} I listed the root directory and created an empty directory (Figure~\ref{fig:sc-1}):
 
-\begin{lstlisting}[style=terminal,caption={The root directory of xv6 and a new empty directory}]
-$ ls
-.              1 1 1024
-..             1 1 1024
-README         2 2 2441
-cat            2 3 35376
-echo           2 4 34232
-sleep          2 5 34152
-args           2 6 34296
-forktest       2 7 16064
-grep           2 8 38736
-...
-mystat         2 25 34928
-find           2 26 36216
-console        3 27 0
-$ mkdir a
-$ ls a
-.              1 28 32
-..             1 1 1024
-\end{lstlisting}
+\shot{1}{The root directory of xv6 and a new, empty directory}
 
 Every line is: name, type, inode number, size in bytes. To decode the type I opened \texttt{kernel/stat.h}:
 
@@ -230,7 +227,7 @@ Type 1 is \texttt{T\_DIR}, a directory; type 2 is \texttt{T\_FILE}, a regular fi
 The root directory has inode number 1 (\texttt{ROOTINO} in \texttt{kernel/fs.h}; inode 0 is never used, because 0 marks a free directory entry). Both \texttt{.} and \texttt{..} show inode 1: \texttt{.} always points to the directory itself, and the root has no parent, so \texttt{mkfs} makes its \texttt{..} point back to itself as well. That is why \texttt{cd ..} in \texttt{/} stays in \texttt{/}.
 
 \qa{3}{An empty directory \texttt{a} has size 32. A directory entry has a fixed size. How big is one entry, and which two entries does \texttt{a} contain?}
-One \texttt{struct dirent} is 16 bytes: a \texttt{ushort inum} (2 bytes) and \texttt{char name[DIRSIZ]} (14 bytes). An ``empty'' directory still contains two entries, $2 \times 16 = 32$ bytes: \texttt{.} pointing to itself (inode 28) and \texttt{..} pointing to its parent, the root (inode 1).
+One \texttt{struct dirent} is 16 bytes: a \texttt{ushort inum} (2 bytes) and \texttt{char name[DIRSIZ]} (14 bytes). An ``empty'' directory still contains two entries, $2 \times 16 = 32$ bytes: \texttt{.} pointing to itself (the inode printed on the \texttt{.} line of \texttt{ls a} in Figure~\ref{fig:sc-1}) and \texttt{..} pointing to its parent, the root (inode 1).
 
 \newpage
 \section{Write mystat}
@@ -282,41 +279,18 @@ main(int argc, char *argv[])
 
 The program was added to \texttt{UPROGS}:
 
-\begin{lstlisting}[style=terminal,caption={The new lines in UPROGS (each starts with a TAB)}]
-UPROGS=\
-	$U/_cat\
-	...
-	$U/_sync\
-	$U/_mystat\
-	$U/_find\
-\end{lstlisting}
+\shot{2}{The new lines at the end of UPROGS}
 
 \subsection{Watching Hard Links at Work}
 
-\begin{lstlisting}[style=terminal,caption={mystat before and after ln and rm}]
-$ mystat README . console
-README: file, inode 2, links 1, size 2441 bytes
-.: directory, inode 1, links 2, size 1024 bytes
-console: device, inode 27, links 1, size 0 bytes
-$ mystat nothere
-mystat: cannot stat nothere
-$ ln README r2
-$ mystat README r2
-README: file, inode 2, links 2, size 2441 bytes
-r2: file, inode 2, links 2, size 2441 bytes
-$ rm README
-$ mystat r2
-r2: file, inode 2, links 1, size 2441 bytes
-$ cat r2 | wc
-49 324 2441
-\end{lstlisting}
+\shot{3}{mystat before and after ln and rm}
 
-(The root directory shows \texttt{links 2} instead of 1 because the directory \texttt{a} created in Part~1 has a \texttt{..} entry pointing to it: \texttt{create()} in \texttt{kernel/sysfile.c} does \texttt{dp->nlink++} for every new subdirectory.)
+(The root directory reports \texttt{links 1}: \texttt{mkfs} gives the root inode one link, and in this freshly rebuilt image no subdirectory points back to it yet. After a \texttt{mkdir a} the count becomes 2, because \texttt{create()} in \texttt{kernel/sysfile.c} does \texttt{dp->nlink++} for every new subdirectory, to account for its \texttt{..} entry.)
 
 \subsection*{Observations}
 
 \qa{1}{Paste the outputs after \texttt{ln} and after \texttt{rm}. What changed and what did not?}
-After \texttt{ln README r2} both names report \textit{the same} inode 2, and the link count went from 1 to 2. After \texttt{rm README} the name \texttt{README} disappeared and \texttt{r2} reports inode 2 with links 1. What did \textbf{not} change: the inode number, the type and the size (2441 bytes) -- and the content, as \texttt{cat r2 | wc} shows the full README. \texttt{ln} and \texttt{rm} only add and remove directory entries and adjust \texttt{nlink}; the inode and its data blocks were never touched.
+After \texttt{ln README r2} both names report \textit{the same} inode \val{2}, and the link count went from 1 to 2. After \texttt{rm README} the name \texttt{README} disappeared and \texttt{r2} reports the same inode with links 1. What did \textbf{not} change: the inode number, the type and the size (\val{2441}~bytes) -- and the content, as \texttt{cat r2 | wc} shows the full README. \texttt{ln} and \texttt{rm} only add and remove directory entries and adjust \texttt{nlink}; the inode and its data blocks were never touched.
 
 \qa{2}{Find the line in \texttt{kernel/sysfile.c} (\texttt{sys\_unlink}) that decrements the link count. When are the data blocks freed?}
 
@@ -355,26 +329,13 @@ An xv6 inode has only six fields: \texttt{type}, \texttt{major} and \texttt{mino
 \newpage
 \section{Measure the Limits}
 
-\begin{lstlisting}[style=terminal,caption={The constants in kernel/fs.h and the layout printed by mkfs}]
-$ grep -n "define BSIZE\|define NDIRECT\|define NINDIRECT\|define DIRSIZ" kernel/fs.h
-5:#define BSIZE   1024 // block size
-26:#define NDIRECT   12
-27:#define NINDIRECT (BSIZE / sizeof(uint))
-54:#define DIRSIZ 14
-$ make clean ; make fs.img 2>&1 | grep nmeta
-nmeta 47 (boot, super, log blocks 31, inode blocks 13, bitmap blocks 1) blocks 1953 total 2000
-\end{lstlisting}
+\texttt{kernel/fs.h} holds the constants that describe the geometry of the file system, and the \texttt{mkfs} tool prints the layout it writes into \texttt{fs.img} at build time (Figure~\ref{fig:sc-4}):
 
-\begin{lstlisting}[style=terminal,caption={A name that is too long}]
-$ mkdir averyveryverylongname
-$ ls
-.              1 1 1024
-..             1 1 1024
-README         2 2 2441
-...
-console        3 27 0
-averyveryveryl 1 28 32
-\end{lstlisting}
+\shot{4}{The constants in kernel/fs.h and the layout printed by mkfs}
+
+The same constants limit the names: \texttt{DIRSIZ} is 14, so a longer name is silently cut when the directory entry is written (Figure~\ref{fig:sc-5}).
+
+\shot{5}{A file name longer than DIRSIZ}
 
 \subsection*{Observations}
 
@@ -399,19 +360,19 @@ A file of more than 268~KiB cannot be written in xv6; \texttt{writei()} refuses 
     \textbf{Region} & \textbf{Blocks} & \textbf{Where it comes from} \\
     \midrule
     boot + superblock & 2    & blocks 0 and 1 \\
-    log               & 31   & 1 header + \texttt{LOGBLOCKS} $= 3 \times$ \texttt{MAXOPBLOCKS} $= 30$ \\
-    inodes            & 13   & \texttt{NINODES}/\texttt{IPB} $+ 1 = 200/16 + 1$ \\
-    bitmap            & 1    & 2000 bits fit in one block of 8192 bits \\
+    log               & \val{31}   & 1 header + \texttt{LOGBLOCKS} $= 3 \times$ \texttt{MAXOPBLOCKS} $= 30$ \\
+    inodes            & \val{13}   & \texttt{NINODES}/\texttt{IPB} $+ 1 = 200/16 + 1$ \\
+    bitmap            & \val{1}    & \val{2000} bits fit in one block of 8192 bits \\
     \midrule
-    metadata (nmeta)  & 47   & $2 + 31 + 13 + 1$ \\
-    data              & 1953 & $2000 - 47$ \\
+    metadata (nmeta)  & \val{47}   & $2 + 31 + 13 + 1$ \\
+    data              & \val{1953} & $2000 - 47$ \\
     \midrule
-    \textbf{total}    & \textbf{2000} & \texttt{FSSIZE} in \texttt{kernel/param.h} \\
+    \textbf{total}    & \textbf{\val{2000}} & \texttt{FSSIZE} in \texttt{kernel/param.h} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-The whole disk has 2000 blocks (about 2~MB): 31 for the log, 13 for the inodes, 1 for the bitmap and 1953 for data.
+The whole disk has \val{2000} blocks (about 2~MB): \val{31} for the log, \val{13} for the inodes, \val{1} for the bitmap and \val{1953} for data -- exactly what the \texttt{nmeta} line in Figure~\ref{fig:sc-4} reports.
 
 \newpage
 \section{Write find}
@@ -531,39 +492,16 @@ main(int argc, char *argv[])
 
 \subsection{Testing on a Fresh Disk}
 
-\begin{lstlisting}[style=terminal,caption={find after make clean ; make qemu}]
-$ mkdir a
-$ mkdir a/b
-$ echo x > a/b/r2
-$ echo y > a/r2
-$ ln cat r2
-$ find . r2
-./a/b/r2
-./a/r2
-./r2
-$ find a b
-a/b
-$ find . nothing
-$ find
-usage: find <dir> <name> [-n]
-\end{lstlisting}
+\shot{6}{find on a fresh disk}
 
-The output contains exactly the three expected paths. The order follows the order of the entries in each directory: \texttt{a} was created before \texttt{r2} in the root, so the subtree of \texttt{a} is printed first.
+The output (Figure~\ref{fig:sc-6}) contains exactly the three expected paths. The order follows the order of the entries in each directory: \texttt{a} was created before \texttt{r2} in the root, so the subtree of \texttt{a} is printed first.
 
 \newpage
 \section{Stretch Task: find with Inode Numbers}
 
-\begin{lstlisting}[style=terminal,caption={find . r2 -n}]
-$ find . r2 -n
-./a/b/r2 30
-./a/r2 31
-./r2 3
-$ mystat cat r2
-cat: file, inode 3, links 2, size 35376 bytes
-r2: file, inode 3, links 2, size 35376 bytes
-\end{lstlisting}
+\shot{7}{find . r2 -n and the inodes of the two names of cat}
 
-Only \texttt{./r2} is the same file as \texttt{cat}: both have inode 3, and \texttt{mystat} shows that this inode has 2 links. \texttt{./a/r2} (inode 31) and \texttt{./a/b/r2} (inode 30) are new, independent files created by \texttt{echo}, which received new inodes after \texttt{console} (27), \texttt{a} (28) and \texttt{a/b} (29). Running \texttt{./r2} would in fact start the \texttt{cat} program.
+Only \texttt{./r2} is the same file as \texttt{cat}: \texttt{find . r2 -n} prints inode \val{3} for it, and \texttt{mystat} shows that this inode has \val{2} links. \texttt{./a/r2} (inode \val{31}) and \texttt{./a/b/r2} (inode \val{30}) are new, independent files created by \texttt{echo}, which received fresh inodes (Figure~\ref{fig:sc-7}). Running \texttt{./r2} would in fact start the \texttt{cat} program.
 
 \newpage
 \section*{Conclusions}
@@ -571,6 +509,6 @@ Only \texttt{./r2} is the same file as \texttt{cat}: both have inode 3, and \tex
 
 In this laboratory work I explored the xv6 file system from the user side and from the source code. Decoding the output of \texttt{ls} showed that an xv6 directory is literally an array of 16-byte entries, that the root has inode 1 and is its own parent, and that even an empty directory holds \texttt{.} and \texttt{..}. Writing \texttt{mystat} made the content of \texttt{struct stat} visible and allowed me to watch hard links: \texttt{ln} and \texttt{rm} only change directory entries and \texttt{nlink}, while the inode and its data stay the same. Reading \texttt{sys\_unlink} and \texttt{iput} confirmed the rule I had already observed on Linux in Laboratory Work No.~5: blocks are freed only when the link count is zero and nobody uses the inode any more.
 
-Measuring the limits from \texttt{kernel/fs.h} showed how small xv6 deliberately is: names of at most 14 characters, files of at most 268~KiB, and a 2000-block disk of which 47 blocks are metadata, including a 31-block log. Finally, by turning \texttt{ls} into a recursive \texttt{find} I practised walking the directory tree, skipping free slots and \texttt{.}/\texttt{..}, and closing every descriptor to stay within the per-process limit. The stretch task with inode numbers showed once more that a name is only a pointer to an inode: \texttt{./r2} and \texttt{cat} are two names of the same file.
+Measuring the limits from \texttt{kernel/fs.h} showed how small xv6 deliberately is: names of at most 14 characters, files of at most 268~KiB, and a \val{2000}-block disk of which \val{47} blocks are metadata, including a 31-block log. Finally, by turning \texttt{ls} into a recursive \texttt{find} I practised walking the directory tree, skipping free slots and \texttt{.}/\texttt{..}, and closing every descriptor to stay within the per-process limit. The stretch task with inode numbers showed once more that a name is only a pointer to an inode: \texttt{./r2} and \texttt{cat} are two names of the same file.
 
 \end{document}
