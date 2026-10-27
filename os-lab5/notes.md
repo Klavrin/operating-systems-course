@@ -101,7 +101,7 @@ Prediction before the box experiment: with only `r` the names should be visible 
 
 ### Observe
 
-1. **Draw your disk.** One 10 GB disk, `vda` (major 254), split into four partitions: `vda1` 16 MB (BIOS boot, not mounted), `vda2` 760 MB vfat mounted on `/boot/efi`, `vda3` 8.7 GB ext4 mounted on `/`, and `vda4` 547 MB of swap. `sr0` is the empty virtual CD drive.
+1. **Draw your disk.** One 10 GB disk, `vda` (major 254), split into four partitions: `vda1` 16 MB (no mount point), `vda2` 760 MB vfat mounted on `/boot/efi`, `vda3` 8.7 GB ext4 mounted on `/`, and `vda4` 547 MB of swap. `sr0` is the empty virtual CD drive.
 2. **How full is the root file system?** `/dev/vda3` has 8.5 GB, with 6.5 GB used and 1.6 GB available: 81 % full. Used plus available is slightly less than the size because ext4 reserves 5 % of the blocks for root.
 3. **How many cores and how much RAM?** 6 cores, and `MemTotal` is 4 007 168 kB, about 3.8 GiB (4 GB assigned to the VM, minus what the kernel reserves).
 4. **`/proc/self/status` showed the name of a program — which one, and why?** `head`. `/proc/self` always points to the process reading it, and the file was opened by `head`, not by the shell. For the same reason `ls -l /proc/self/fd` lists the descriptors of `ls` itself, including the descriptor of the directory it was listing.
@@ -112,7 +112,7 @@ Prediction before the box experiment: with only `r` the names should be visible 
 
 ![The type is in the content, not in the name](screenshots/sc-14.png)
 
-`file` ignores the `.txt` extension: it compares the first bytes with a database of signatures. `1f 8b` is the gzip magic number, `08` is the compression method (deflate) and the next `08` is the "original file name present" flag, which is why the name of the original file appears right after the header.
+`file` ignores the `.txt` extension: it compares the first bytes with a database of signatures (visible in the hex dump). `1f 8b` is the gzip magic number, `08` is the compression method (deflate) and the next `08` is the "original file name present" flag, which is why the name of the original file appears right after the header.
 
 ### (c) Deleting a file that is still open
 

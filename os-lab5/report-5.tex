@@ -379,7 +379,7 @@ It showed \texttt{Name: head}. \texttt{/proc/self} is a magic link that always p
 \subsection{(a) Magic Numbers}
 
 \shot{14}{The type is in the content, not in the name}
-Although the file is called \texttt{notes.txt}, \texttt{file} recognises gzip data. It does not look at the extension: it compares the first bytes with a database of signatures. The first two bytes \texttt{1f 8b} are the gzip magic number; \texttt{08} is the compression method (deflate) and the next \texttt{08} is the flag ``original file name present'', which is why the name \texttt{passwd} is visible right after the header.
+Although the file is called \texttt{notes.txt}, \texttt{file} recognises gzip data. It does not look at the extension: it compares the first bytes with a database of signatures (the hex dump in Figure~\ref{fig:sc-14} shows them). The first two bytes \texttt{1f 8b} are the gzip magic number; \texttt{08} is the compression method (deflate) and the next \texttt{08} is the flag ``original file name present'', which is why the name \texttt{passwd} is visible right after the header.
 
 \subsection{(c) Deleting a File That Is Still Open}
 
